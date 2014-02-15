@@ -10,6 +10,7 @@ in the source distribution for its full text.
 #include "CRT.h"
 #include "CPUMeter.h"
 #include "MemoryMeter.h"
+#include "VideoMemoryMeter.h"
 #include "SwapMeter.h"
 #include "TasksMeter.h"
 #include "LoadAverageMeter.h"

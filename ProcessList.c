@@ -132,6 +132,8 @@ typedef struct ProcessList_ {
    unsigned long long int totalSwap;
    unsigned long long int usedSwap;
    unsigned long long int freeSwap;
+   unsigned long long int totalVMem;
+   unsigned long long int usedVMem;
 
    int flags;
    ProcessField* fields;
@@ -923,6 +925,22 @@ void ProcessList_scan(ProcessList* this) {
    this->usedMem = this->totalMem - this->freeMem;
    this->usedSwap = this->totalSwap - swapFree;
    fclose(file);
+
+   this->totalVMem = 0;
+   this->usedVMem = 0;
+   file = fopen("/sys/kernel/debug/dri/0/radeon_vram_mm", "r");
+   if (file != NULL) {
+      char buffer[128];
+      unsigned long long int tmp;
+      while (fgets(buffer, 128, file)) {
+         switch (buffer[0]) {
+         case 't':
+               sscanf(buffer, "total: %llu, used %llu free %llu", &this->totalVMem, &this->usedVMem, &tmp);
+            break;
+         }
+      }
+      fclose(file);
+   }
 
    file = fopen(PROCSTATFILE, "r");
    if (file == NULL) {

@@ -962,6 +962,26 @@ static inline void LinuxProcessList_scanMemoryInfo(ProcessList* this) {
    fclose(file);
 }
 
+static inline void LinuxProcessList_scanVideoMemoryInfo(LinuxProcessList* this) {
+   unsigned long long int tmp = 0;
+
+   FILE* file = fopen("/sys/kernel/debug/dri/0/radeon_vram_mm", "r");
+   if (file == NULL) {
+      CRT_fatalError("Cannot open " "/sys/kernel/debug/dri/0/radeon_vram_mm");
+   }
+   char buffer[128];
+   while (fgets(buffer, 128, file)) {
+      switch (buffer[0]) {
+      case 't':
+         if (String_startsWith(buffer, "total:"))
+            sscanf(buffer, "total: %llu, used %llu free %llu",
+                           &this->super.totalVMem, &this->super.usedVMem, &tmp);
+         break;
+      }
+   }
+   fclose(file);
+}
+
 static inline double LinuxProcessList_scanCPUTime(LinuxProcessList* this) {
 
    FILE* file = fopen(PROCSTATFILE, "r");
@@ -1036,6 +1056,8 @@ void ProcessList_goThroughEntries(ProcessList* super) {
    LinuxProcessList* this = (LinuxProcessList*) super;
 
    LinuxProcessList_scanMemoryInfo(super);
+   LinuxProcessList_scanVideoMemoryInfo(super);
+
    double period = LinuxProcessList_scanCPUTime(this);
 
    struct timeval tv;

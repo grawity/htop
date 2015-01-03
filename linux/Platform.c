@@ -14,6 +14,7 @@ in the source distribution for its full text.
 #include "Meter.h"
 #include "CPUMeter.h"
 #include "MemoryMeter.h"
+#include "VideoMemoryMeter.h"
 #include "SwapMeter.h"
 #include "TasksMeter.h"
 #include "LoadAverageMeter.h"
@@ -57,6 +58,7 @@ MeterClass* Platform_meterTypes[] = {
    &LoadAverageMeter_class,
    &LoadMeter_class,
    &MemoryMeter_class,
+   &VideoMemoryMeter_class,
    &SwapMeter_class,
    &TasksMeter_class,
    &UptimeMeter_class,

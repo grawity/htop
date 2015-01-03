@@ -23,6 +23,7 @@ in the source distribution for its full text.
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/capability.h>
 
 /*{
 #include "Process.h"
@@ -89,8 +90,17 @@ void TraceScreen_run(TraceScreen* this) {
       dup2(fdpair[1], STDERR_FILENO);
       int ok = fcntl(fdpair[1], F_SETFL, O_NONBLOCK);
       if (ok != -1) {
-         sprintf(buffer, "%d", this->process->pid);
-         execlp("strace", "strace", "-p", buffer, NULL);
+	 cap_value_t cap_list = {CAP_SYS_PTRACE};
+	 cap_t caps = cap_get_proc();
+	 cap_set_flag(caps, CAP_INHERITABLE, 1, &cap_list, CAP_SET);
+	 ok = cap_set_proc(caps);
+	 if (ok != -1) {
+            sprintf(buffer, "%d", this->process->pid);
+            execlp("strace", "strace", "-p", buffer, NULL);
+	 }
+	 const char* message = "Could not raise capabilities.";
+	 write(fdpair[1], message, strlen(message));
+	 exit(1);
       }
       const char* message = "Could not execute 'strace'. Please make sure it is available in your $PATH.";
       write(fdpair[1], message, strlen(message));
